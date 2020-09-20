@@ -1,9 +1,13 @@
 # SDL-network-for-PA-target-localization
 Following packages and libraries are needed for running the codes:
+
 Python 3.6
+
 pytorch 1.1.0
 dsntnn
+
 scipy
+
 h5py
 
 'Train.py' is used for taining different architecture and losses by using the 'Mode' variable:
