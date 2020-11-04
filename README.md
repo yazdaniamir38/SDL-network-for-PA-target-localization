@@ -20,4 +20,6 @@ In order to test the network use 'test.py' providing the following parameters:
 'checkpoint':checkpoint directory
 'test_dir':test set directory
 make sure the test set follows 'NCWH' for the dimensions.
+The dataset and pretrained models can be found here:
+https://pennstateoffice365-my.sharepoint.com/:f:/g/personal/auy200_psu_edu/EpivgAtOBsdPv1Tbmj1x0DEB8J_X8vy3ZS-qASujT3nvMw?e=EdD1tA
 
