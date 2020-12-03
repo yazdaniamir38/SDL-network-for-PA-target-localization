@@ -29,12 +29,9 @@ np.random.seed(seed2)
 #-----------------------------------------------------------------------------
 #data path should include the h5files for the dataset with 3 dictionares:'INPUT','TARGET','CLEAN'(optional for single mode)
 train_files = './train';
-test_files='./test'
 bs =4# batch size
 # train = torch.utils.data.TensorDataset(X_Train, Y_Train,X_Clean)
 # trainloader = torch.utils.data.DataLoader(train, batch_size=bs, shuffle=False)
-test_set=DatasetFromHdf5(os.walk(test_files),yes=0)
-testloader = torch.utils.data.DataLoader(test, batch_size=bs, shuffle=False)
 
 #if you don't use clean samples in the network set yes=0
 train_set = DatasetFromHdf5(os.walk(train_files),yes=1)
