@@ -452,7 +452,7 @@ if Train:
                          if labels[l,m,0]==0 and labels[l,m,1]==0:
                              ridge_tar[l, m, :, :] =ridge_tar[l,m-1,:,:]
                          else:
-                             ridge_tar[l,m,:,:]=clean[l,0,int(128*(nplabels[l,0,1]+27.5)/55)-(ridge.shape[2])//2:int(128*(nplabels[l,0,1]+27.5)/55)+(ridge.shape[2])//2,max(int(1024*(nplab
+                             ridge_tar[l,m,:,:]=clean[l,0,int(128*(nplabels[l,m,1]+27.5)/55)-(ridge.shape[2])//2:int(128*(nplabels[l,m,1]+27.5)/55)+(ridge.shape[2])//2,max(int(1024*(nplabels[l,m,0]+
                    #the gt ridge used for regularization terms
                    ridge_pattern = torch.cat([torch.mul(ridge_tar[:, 0:1, :, :], torch.ones(3, 10, 20, 40)),
                                          torch.mul(ridge_tar[:, 1:2, :, :], torch.ones(3, 10, 20, 40)),
