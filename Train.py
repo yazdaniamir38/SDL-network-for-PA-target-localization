@@ -445,9 +445,9 @@ if Train:
                     #extracting ridge_clean
                    for l in range(3):
                       for m in range(4):
-                         nplabels[l, m, 0] = labels[l, m, 0] * ((max_ax - min_ax) / 2 / 1) + (
-                            (max_ax - min_ax) / 2 + min_ax)
-                         nplabels[l, m, 1] = labels[l, m, 1] * ((40) / 2 / 1)
+                         nplabels[l, m, 0] = labels[l, m, 0] * ((40) / 2 / .9) + (
+                            (40) / 2 + 10)
+                         nplabels[l, m, 1] = labels[l, m, 1] * ((40) / 2 / .9)
                       if labels[l,m,0]==0 and labels[l,m,1]==0:
                          ridge_tar[l, m, :, :] =ridge_tar[l,m-1,:,:]
                     else:
