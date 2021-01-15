@@ -16,11 +16,11 @@ else:
 checkpoint='/model/SDL_on_mixed.pth'
 model.load_state_dict(torch.load(checkpoint))
 test_path='/dataset/test/'
-with h5py.File(''.join([test_path, 'Codes_to_Share/X_Test_mixed.mat']), 'r') as data:
+with h5py.File(''.join([test_path, 'test/X_Test_mixed.mat']), 'r') as data:
     X_Test = data['XTest'][:]
 X_Test = np.transpose(X_Test)
 X_Test = torch.from_numpy(X_Test)
-data = si.loadmat(''.join([data_path, 'Codes_to_Share/Y_Test_mixed.mat']))
+data = si.loadmat(''.join([data_path, 'test/Y_Test_mixed.mat']))
 Y_te = data['YTest'][:]
 Y_te = torch.from_numpy(Y_te).float()
 Y_Test = torch.Tensor(6000, 4, 2)
