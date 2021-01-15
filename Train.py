@@ -335,15 +335,6 @@ class CoordRegressionNetwork(nn.Module):
             clean_output=self.hm_conv2(dec_out)
             heatmaps = dsntnn.flat_softmax(unnormalized_heatmaps)
             coords = dsntnn.dsnt(heatmaps)
-            # input_edges=self.relu(nn.functional.conv2d(images,self.f))
-            # input_edges=torch.add(torch.add(input_edges[:,0:1,:,:],input_edges[:,1:2,:,:]),torch.add(input_edges[:,2:3,:,:],input_edges[:,3:4,:,:]))
-            # clean_edges=self.relu(nn.functional.conv2d(clean_output,self.f))
-            # clean_edges=torch.add(torch.add(clean_edges[:,0:1,:,:],clean_edges[:,1:2,:,:]),torch.add(clean_edges[:,2:3,:,:],clean_edges[:,3:4,:,:]))
-            # mult=torch.mul(clean_edges,input_edges)
-            # out_noise=(torch.cat([self.noise(mult),nn.functional.conv2d(mult,self.f2)],dim=1))
-            # out_ridge=(torch.cat([self.ridge(mult),nn.functional.conv2d(mult,self.f1)],dim=1))
-            # ridge=self.maxpool1(out_ridge)
-            # noise=self.maxpool2(out_noise)
             return coords, heatmaps, clean_output,xhist
 
 class final(nn.Module):
@@ -368,7 +359,7 @@ class final(nn.Module):
         out_ridge=torch.cat([out_ridge1,out_ridge2,out_ridge3,out_ridge4],dim=1)
         ridge=self.maxpool1(out_ridge)
         noise=self.maxpool2(out_noise)
-        return coords, heatmaps,ridge,noise
+        return coords, heatmaps,clean_output,ridge,noise
 
 
 #Generating the edge detection filters
@@ -403,14 +394,16 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=10)
 #If you want to load a pre-trained model
 load =True
 # Path to pretrained model
-model_path= './model/SDL_mixed/checkpoint.pth'          
+model_path= './checkpoints/SDL_mixed.pth'
+# single-decoder:single_mixed.pth
+# w/o filters:without_mixed.pth
 if load == True:
     model.load_state_dict(torch.load(model_path))
 Train = False
 criterion = nn.MSELoss()
 if Train:
     #Number of epochs
-    n = 60
+    n = 120
     Train_loss_hist = torch.Tensor(n+1).numpy()
     Train_acc_hist = torch.Tensor(n+1).numpy()
         count=0
@@ -419,7 +412,7 @@ if Train:
         print('Epoch: %d' % epoch)
         running_train_loss = 0.0
         for i, data in enumerate(trainloader, 0):
-            # get the inputs(Change them acordingly if there is no clean gt in your dataset'
+            # get the inputs(Change them acordingly if there is no clean gt in your dataset)'
             inputs,clean,labels= data
             # load to GPU
             inputs = inputs.cuda()
@@ -428,7 +421,13 @@ if Train:
             # wrap them in Variable
             inputs,labels,clean= Variable(inputs),Variable(labels),Variable(clean)
             #forward pass
-            coords, heatmaps,_,_= model(inputs.float())
+            if mode=='single':
+               coords, heatmaps,_,_= model(inputs.float())
+            else:
+               if mode==='WN-less':
+                 coords, heatmaps,clean_output,_= model(inputs.float())
+               else:
+                 coords, heatmaps,clean_output,ridge,noise= model(inputs.float())
             #Per-location euclidean losses
             euc_losses = dsntnn.euclidean_losses(coords, labels)
             #Per-location regularization losses
@@ -446,19 +445,23 @@ if Train:
                     #extracting ridge_clean
                    for l in range(3):
                       for m in range(4):
-                         nplabels[l, m, 0] = labels[l, m, 0] * ((max_ax - min_ax) / 2 / 1) + ((max_ax - min_ax) / 2 + min_ax)
+                         nplabels[l, m, 0] = labels[l, m, 0] * ((max_ax - min_ax) / 2 / 1) + (
+                            (max_ax - min_ax) / 2 + min_ax)
                          nplabels[l, m, 1] = labels[l, m, 1] * ((40) / 2 / 1)
-                            
-                         if labels[l,m,0]==0 and labels[l,m,1]==0:
-                             ridge_tar[l, m, :, :] =ridge_tar[l,m-1,:,:]
-                         else:
-                             ridge_tar[l,m,:,:]=clean[l,0,int(128*(nplabels[l,m,1]+27.5)/55)-(ridge.shape[2])//2:int(128*(nplabels[l,m,1]+27.5)/55)+(ridge.shape[2])//2,max(int(1024*(nplabels[l,m,0]+
-                   #the gt ridge used for regularization terms
-                   ridge_pattern = torch.cat([torch.mul(ridge_tar[:, 0:1, :, :], torch.ones(3, 10, 20, 40)),
-                                         torch.mul(ridge_tar[:, 1:2, :, :], torch.ones(3, 10, 20, 40)),
-                                       torch.mul(ridge_tar[:, 2:3, :, :], torch.ones(3, 10, 20, 40)),
-                                        torch.mul(ridge_tar[:, 3:4, :, :], torch.ones(3, 10, 20, 40))], dim=1)
-                   loss = dsntnn.average_loss(euc_losses+reg_losses)+.5*noise_loss+10**-4*criterion(ridge, ridge_pattern.cuda()) + 10**-9* criterion(noise, torch.zeros(noise.shape).cuda())
+                      if labels[l,m,0]==0 and labels[l,m,1]==0:
+                         ridge_tar[l, m, :, :] =ridge_tar[l,m-1,:,:]
+                    else:
+                        ridge_tar[l,m,:,:]=clean[l,0,int(256*(nplabels[l,m,1]+25.85)/51.7)-(ridge.shape[2])//2:int(256*(nplabels[l,m,1]+25.85)/51.7)+(ridge.shape[2])//2+1,int(1024*(nplabels[l,m,0])/61)-(ridge.shape[3])//2:int(1024*(nplabels[l,m,0])/61)+(ridge.shape[3])//2]
+          
+          
+                     #the gt ridge used for regularization terms
+                    ridge_pattern = torch.cat([torch.mul(ridge_tar[:, 0:1, :, :], torch.ones(3, 10,ridge.shape[2],ridge.shape[3])),
+                                       torch.mul(ridge_tar[:, 1:2, :, :], torch.ones(3, 10, ridge.shape[2],ridge.shape[3])),
+                                       torch.mul(ridge_tar[:, 2:3, :, :], torch.ones(3, 10, ridge.shape[2],ridge.shape[3])),
+                                       torch.mul(ridge_tar[:, 3:4, :, :], torch.ones(3, 10, ridge.shape[2],ridge.shape[3]))], dim=1)
+                  
+                  
+                    loss = dsntnn.average_loss(euc_losses+reg_losses)+.5*noise_loss+10**-4*(criterion(ridge, ridge_pattern.cuda()) + criterion(noise, torch.zeros(noise.shape).cuda()))
            
             optimizer.zero_grad()
             torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm=5)
