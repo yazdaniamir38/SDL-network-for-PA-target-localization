@@ -5,9 +5,9 @@ Python 3.6
 
 pytorch 1.1.0
 
-dsntnn
+dsntnn 0.5.3
 
-scipy
+scipy  2.9.0
 
 h5py
 
@@ -26,6 +26,8 @@ In order to test the network use 'test.py' providing the following parameters:
 'checkpoint':checkpoint directory
 
 'test_dir':test set directory
+
+'train'directory' includes h5 files for the training set.
 
 make sure the test set follows 'NCWH' for the dimensions.
 
