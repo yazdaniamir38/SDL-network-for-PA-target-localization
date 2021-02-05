@@ -394,7 +394,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=10)
 #If you want to load a pre-trained model
 load =True
 # Path to pretrained model
-model_path= './checkpoints/SDL_mixed.pth'
+model_path= './SDL_Dir/checkpoints/SDL_mixed.pth'
 # single-decoder:single_mixed.pth
 # w/o filters:without_mixed.pth
 if load == True:
