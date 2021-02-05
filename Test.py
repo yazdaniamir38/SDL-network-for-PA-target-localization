@@ -13,9 +13,9 @@ if mode =='SDL'
     model=final(n_locations=4).cuda()
 else:
     model=CoordRegressionNetwork(n_locations=4).cuda()
-checkpoint='/model/SDL_on_mixed.pth'
+checkpoint='./SDL_Dir/checkpoints/SDL_on_mixed.pth'
 model.load_state_dict(torch.load(checkpoint))
-test_path='/Test_data/'
+test_path='./SDL_Dir/Test_data/'
 with h5py.File(''.join([test_path, 'X_Test_mixed.mat']), 'r') as data:
     X_Test = data['XTest'][:]
 X_Test = np.transpose(X_Test)
