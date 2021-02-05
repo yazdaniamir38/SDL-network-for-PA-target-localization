@@ -35,3 +35,4 @@ The dataset and pretrained models can be found here:
 
 https://drive.google.com/drive/folders/1tPXmnqvpFsgJvs68_2o3fIAJY6YBhTGA?usp=sharing
 
+After downloading the pretrained models and the dataset and saving them into SDL_Dir/ you can run training to train a new model in 3 different modes mentioned using the training dataset. You can also test the pretrained models using the test code and the test dataset privided.
