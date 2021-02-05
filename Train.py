@@ -473,7 +473,7 @@ if Train:
         Train_loss_hist[epoch] = running_train_loss
         print('loss: %.10f' % running_train_loss)
         if (epoch%5==0 ):            # Saves model every 5 epochs
-            dir_name = './model/'
+            dir_name = './SDL_Dir/checkpoints/'
             torch.save(model.state_dict(), dir_name+str(epoch)+'.pth')
             
 
