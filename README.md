@@ -21,13 +21,7 @@ h5py
 
 ##The netowrk can predict up to 4 targets in each sample and it outputs (0,0) for no detection.
 
-In order to test the network use 'test.py' providing the following parameters:
-
-'checkpoint':checkpoint directory
-
-'test_dir':test set directory
-
-'train'directory' includes h5 files for the training set.
+In order to test the network use 'test.py'.
 
 make sure the test set follows 'NCWH' for the dimensions.
 
