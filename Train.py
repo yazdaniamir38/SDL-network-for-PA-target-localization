@@ -28,7 +28,7 @@ np.random.seed(seed2)
 #          -Load Data-
 #-----------------------------------------------------------------------------
 #data path should include the h5files for the dataset with 3 dictionares:'INPUT','TARGET','CLEAN'(optional for single mode)
-train_files = './Train_data';
+train_files = './SDL_Dir/Train_data';
 bs =4# batch size
 # train = torch.utils.data.TensorDataset(X_Train, Y_Train,X_Clean)
 # trainloader = torch.utils.data.DataLoader(train, batch_size=bs, shuffle=False)
