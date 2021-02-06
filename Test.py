@@ -7,14 +7,24 @@ import os
 import Network
 from Network import CoordRegressionNetwork
 from Network import final
+import utils
 #The architecture for the trained model
 mode='SDL'
-if mode =='SDL'
-    model=final(n_locations=4).cuda()
+if mode =='SDL':
+    # Generating the edge detection filters
+    # e,W,N=utils.generate_filters()
+    model=final(n_locations=4)
 else:
-    model=CoordRegressionNetwork(n_locations=4).cuda()
-checkpoint='./SDL_Dir/checkpoints/SDL_on_mixed.pth'
-model.load_state_dict(torch.load(checkpoint))
+    model=CoordRegressionNetwork(n_locations=4)
+
+checkpoint='./SDL_Dir/checkpoints/SDL_mixed.pth'
+cuda=True
+if cuda:
+  model.cuda()
+  model.load_state_dict(torch.load(checkpoint))
+else:
+    model.load_state_dict(torch.load(checkpoint,map_location=torch.device('cpu')))
+model.eval()
 test_path='./SDL_Dir/Test_data/'
 with h5py.File(''.join([test_path, 'X_Test_mixed.mat']), 'r') as data:
     X_Test = data['XTest'][:]
@@ -41,8 +51,9 @@ test=torch.utils.data.TensorDataset(X_Test, Y_Test)
 testloader = torch.utils.data.DataLoader(test, batch_size=bs, shuffle=False)
 for data in testloader:
     images, labels = data
-    coords, heatmaps, _, _ = model(images.cuda().float())
-
+    if cuda:
+        images=images.cuda()
+    coords, heatmaps, _, _it= model(images.float())
     if batch * bs + bw >= errors.shape[0]:
         bw = errors.shape[0] - batch * bs
         nplabels = torch.Tensor(bw, 4, 2)

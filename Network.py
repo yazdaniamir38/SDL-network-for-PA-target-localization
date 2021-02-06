@@ -287,27 +287,35 @@ class CoordRegressionNetwork(nn.Module):
 
 
 class final(nn.Module):
-    def __init__(self, f, f1, f2):
+    def __init__(self, f=torch.empty([4,1,4,4]), f1=torch.empty([10,1,25,25]), f2=torch.empty([10,1,50,15]),n_locations=4):
         super(final, self).__init__()
-        self.main_model = CoordRegressionNetwork(n_locations=4)
-        self.edges = f
-        self.ridge = f1
-        self.noise = f2
+        self.main_model = CoordRegressionNetwork(n_locations)
+        self.f = f
+        self.f1 = f1
+        self.f2 = f2
+        self.ridge1 = nn.Conv2d(1, 5, kernel_size=25, bias=False)
+        self.ridge2= nn.Conv2d(1, 5, kernel_size=25, bias=False)
+        self.ridge3 = nn.Conv2d(1, 5, kernel_size=25, bias=False)
+        self.ridge4 = nn.Conv2d(1, 5, kernel_size=25, bias=False)
+        self.noise = nn.Conv2d(1, 10, kernel_size=[50, 15], bias=False)
         self.maxpool1 = nn.MaxPool2d(5, stride=[5, 25])
         self.maxpool2 = nn.MaxPool2d(4, stride=[4, 50])
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, images):
-        coords, heatmaps, clean_output, _ = self.main_model(images)
-        clean_edges = self.relu(nn.functional.conv2d(clean_output, self.f))
-        clean_edges = torch.add(torch.add(clean_edges[:, 0:1, :, :], clean_edges[:, 1:2, :, :]),
-                                torch.add(clean_edges[:, 2:3, :, :], clean_edges[:, 3:4, :, :]))
-        out_noise = nn.functional.conv2d(clean_edges, self.noise)], dim = 1)
-        out_ridge1 = nn.functional.conv2d(clean_edges, self.ridge)], dim = 1)
-        out_ridge2 = nn.functional.conv2d(clean_edges, self.ridge)], dim = 1)
-        out_ridge3 = nn.functional.conv2d(clean_edges, self.ridge)], dim = 1)
-        out_ridge4 = nn.functional.conv2d(clean_edges, self.ridge)], dim = 1)
-        out_ridge = torch.cat([out_ridge1, out_ridge2, out_ridge3, out_ridge4], dim=1)
-        ridge = self.maxpool1(out_ridge)
-        noise = self.maxpool2(out_noise)
-        return coords, heatmaps, ridge, noise
+        if self.training:
+            coords, heatmaps, clean_output, _ = self.main_model(images)
+            clean_edges = self.relu(nn.functional.conv2d(clean_output, self.f))
+            clean_edges = torch.add(torch.add(clean_edges[:, 0:1, :, :], clean_edges[:, 1:2, :, :]),
+                                    torch.add(clean_edges[:, 2:3, :, :], clean_edges[:, 3:4, :, :]))
+            out_noise = (torch.cat([self.noise(clean_edges), nn.functional.conv2d(clean_edges, self.f2)], dim=1))
+            out_ridge1 = (torch.cat([self.ridge1(clean_edges), nn.functional.conv2d(clean_edges, self.f1)], dim=1))
+            out_ridge2 = (torch.cat([self.ridge2(clean_edges), nn.functional.conv2d(clean_edges, self.f1)], dim=1))
+            out_ridge3 = (torch.cat([self.ridge3(clean_edges), nn.functional.conv2d(clean_edges, self.f1)], dim=1))
+            out_ridge4 = (torch.cat([self.ridge4(clean_edges), nn.functional.conv2d(clean_edges, self.f1)], dim=1))
+            out_ridge = torch.cat([out_ridge1, out_ridge2, out_ridge3, out_ridge4], dim=1)
+            ridge = self.maxpool1(out_ridge)
+            noise = self.maxpool2(out_noise)
+            return coords, heatmaps,clean_output, ridge, noise
+        else:
+            return self.main_model(images)
